@@ -11,13 +11,13 @@ namespace KoduStore
     {        
         private readonly IList<MemberInfo> _memberFields;
         
-        private IDictionary<MemberInfo, IList<IndexedAttribute>> _indexAttrubteMap;
+        private IDictionary<MemberInfo, IList<SecondaryIndexAttribute>> _indexAttrubteMap;
 
-        private IList<Tuple<MemberInfo, IndexedAttribute>> _indexMemberList;
+        private IList<Tuple<MemberInfo, SecondaryIndexAttribute>> _indexMemberList;
 
         public Type Type { get; private set; }
         
-        public IDictionary<MemberInfo, IList<IndexedAttribute>> IndexAttributeMap => _indexAttrubteMap;
+        public IDictionary<MemberInfo, IList<SecondaryIndexAttribute>> IndexAttributeMap => _indexAttrubteMap;
         
         public IndexInfo(Type t)
         {
@@ -26,25 +26,25 @@ namespace KoduStore
                 .GetProperties(BindingFlags.Instance | BindingFlags.Public)
                 .Cast<MemberInfo>()
                 .Union(this.Type.GetFields(BindingFlags.Instance | BindingFlags.Public))
-                .Where(p => p.GetCustomAttribute<IndexedAttribute>() != null)
+                .Where(p => p.GetCustomAttribute<SecondaryIndexAttribute>() != null)
                 .ToList();
 
             this.InitializeIndexInfo();
         }
 
-        public IList<Tuple<MemberInfo, IndexedAttribute>> GetIndexMembersList()
+        public IList<Tuple<MemberInfo, SecondaryIndexAttribute>> GetIndexMembersList()
         {
             if (_indexMemberList != null)
             {
                 return _indexMemberList;
             }
 
-            var attributesList = new List<Tuple<MemberInfo, IndexedAttribute>>();
+            var attributesList = new List<Tuple<MemberInfo, SecondaryIndexAttribute>>();
             foreach (var entryAttributes in _indexAttrubteMap)
             {
                 foreach (var attribute in entryAttributes.Value)
                 {
-                    attributesList.Add(new Tuple<MemberInfo, IndexedAttribute>(entryAttributes.Key, attribute));
+                    attributesList.Add(new Tuple<MemberInfo, SecondaryIndexAttribute>(entryAttributes.Key, attribute));
                 }
             }
 
@@ -54,7 +54,7 @@ namespace KoduStore
         
         private void InitializeIndexInfo()
         {
-            _indexAttrubteMap = new Dictionary<MemberInfo, IList<IndexedAttribute>>();
+            _indexAttrubteMap = new Dictionary<MemberInfo, IList<SecondaryIndexAttribute>>();
             _indexMemberList = null;
 
             foreach(var member in _memberFields)
@@ -69,7 +69,7 @@ namespace KoduStore
                     type = ((PropertyInfo)member).PropertyType;
                 }
 
-                var attibutesList = member.GetCustomAttributes<IndexedAttribute>()
+                var attibutesList = member.GetCustomAttributes<SecondaryIndexAttribute>()
                     .Select(attribute =>
                     {
                         if (string.IsNullOrEmpty(attribute.Name))

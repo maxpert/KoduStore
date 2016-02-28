@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace KoduStore
 {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
-    public class PrimaryIdAttribute : Attribute
+    public class PrimaryIndexAttribute : Attribute
     {
         public IPropertyValueSerializer Serializer { get; set; } = BitConverterIndexedSerializer.Singleton;
     }

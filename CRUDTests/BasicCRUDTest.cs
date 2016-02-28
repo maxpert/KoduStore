@@ -17,11 +17,11 @@ namespace CRUDTests
         private class BasicObject
         {
             [DataMember]
-            [PrimaryId]
+            [PrimaryIndex]
             public int Id { get; set; }
 
             [DataMember]
-            [Indexed]
+            [SecondaryIndex]
             public int SecondaryIndex { get; set; } = new Random().Next(100000);
 
             [DataMember]

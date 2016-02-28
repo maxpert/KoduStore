@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace KoduStore
 {
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
-    public class IndexedAttribute : Attribute
+    public class SecondaryIndexAttribute : Attribute
     {
         public Type FieldType { get; set; }
 

@@ -19,7 +19,7 @@ namespace KoduStore
 
         private readonly IndexInfo _indexInfo;
 
-        private IList<Tuple<MemberInfo, PrimaryIdAttribute>> _idMembers;
+        private IList<Tuple<MemberInfo, PrimaryIndexAttribute>> _idMembers;
 
         public DocumentConverter()
         {
@@ -27,8 +27,8 @@ namespace KoduStore
             _idMembers = typeof(T).GetMembers(BindingFlags.Instance | BindingFlags.Public)
                                 .Cast<MemberInfo>()
                                 .Union(typeof(T).GetProperties(BindingFlags.Instance | BindingFlags.Public))
-                                .Where(m => m.GetCustomAttribute<PrimaryIdAttribute>() != null)
-                                .Select(m => new Tuple<MemberInfo, PrimaryIdAttribute>(m, m.GetCustomAttribute<PrimaryIdAttribute>()))
+                                .Where(m => m.GetCustomAttribute<PrimaryIndexAttribute>() != null)
+                                .Select(m => new Tuple<MemberInfo, PrimaryIndexAttribute>(m, m.GetCustomAttribute<PrimaryIndexAttribute>()))
                                 .ToList();
             
             this.EnsureDocumentKey();
@@ -125,7 +125,7 @@ namespace KoduStore
             return tuples;
         }
 
-        private Slice GetIndexKeySlice(T obj, MemberInfo member, IndexedAttribute indexAttr, Slice primaryId)
+        private Slice GetIndexKeySlice(T obj, MemberInfo member, SecondaryIndexAttribute indexAttr, Slice primaryId)
         {
             using (var ms = new MemoryStream())
             using (var writer = new BinaryWriter(ms))

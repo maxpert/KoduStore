@@ -113,10 +113,10 @@
     <Compile Include="Collection.cs" />
     <Compile Include="DocumentConverter.cs" />
     <Compile Include="IndexInfo.cs" />
-    <Compile Include="IndexedAttribute.cs" />
+    <Compile Include="SecondaryIndexAttribute.cs" />
     <Compile Include="IPropertyValueSerializer.cs" />
     <Compile Include="IObjectSerializer.cs" />
-    <Compile Include="PrimaryIdAttribute.cs" />
+    <Compile Include="PrimaryIndexAttribute.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SliceComparer.cs" />
     <EmbeddedResource Include="Properties\KoduStore.rd.xml" />
