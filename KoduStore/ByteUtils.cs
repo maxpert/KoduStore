@@ -1,9 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.Security.Cryptography;
+using Windows.Security.Cryptography.Core;
+using Windows.Storage.Streams;
 
 namespace KoduStore
 {
@@ -27,6 +32,22 @@ namespace KoduStore
             }
 
             return cmp;
+        }
+
+        public static byte[] Hash(byte[] bytes)
+        {
+            var input = CryptographicBuffer.CreateFromByteArray(bytes);
+            var algorithm = HashAlgorithmProvider.OpenAlgorithm(HashAlgorithmNames.Md5);
+            var hashed = algorithm.HashData(input);
+            return hashed.ToArray();
+        }
+
+
+        public static byte[] StringToBytes(string str)
+        {
+            byte[] bytes = new byte[str.Length * sizeof(char)];
+            System.Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, bytes.Length);
+            return bytes;
         }
     }
 }

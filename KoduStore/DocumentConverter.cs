@@ -11,6 +11,12 @@ namespace KoduStore
 {
     internal class DocumentConverter<T> where T : class
     {
+        private const byte IdPrefix = 1;
+
+        private const byte IndexPrefix = 0;
+
+        private static readonly byte[] ClassNameHash = ByteUtils.Hash(ByteUtils.StringToBytes(typeof(T).FullName));
+
         private readonly IndexInfo _indexInfo;
 
         private IList<Tuple<MemberInfo, PrimaryIdAttribute>> _idMembers;
@@ -46,7 +52,7 @@ namespace KoduStore
             using (var ms = new MemoryStream())
             using (var writer = new BinaryWriter(ms))
             {
-                Slice prefix = null;
+                byte[] prefix = null;
                 IPropertyValueSerializer serializer = null;
 
                 if (lookupIndex)
@@ -55,13 +61,14 @@ namespace KoduStore
                     {
                         var idxInfo = _indexInfo.IndexAttributeMap[memberInfo][0];
                         serializer = idxInfo.Serializer;
-                        prefix = Slice.FromByteArray(serializer.Serialize(idxInfo.Name));
+                        prefix = serializer.Serialize(idxInfo.Name);
                     }
                 }
                 else
                 {
                     var keyTuple = _idMembers.FirstOrDefault(t => t.Item1 == memberInfo);
                     serializer = keyTuple?.Item2.Serializer;
+                    prefix = serializer.Serialize(ClassNameHash);
                 }
 
                 if (serializer == null)
@@ -69,9 +76,11 @@ namespace KoduStore
                     throw new InvalidOperationException(memberInfo.Name + " has no index and it's not a primary key to do a lookup");
                 }
 
+                writer.Write(lookupIndex ? IndexPrefix : IdPrefix);
+
                 if (prefix != null)
                 {
-                    writer.Write(prefix.ToByteArray());
+                    writer.Write(prefix);
                 }
 
                 writer.Write(serializer.Serialize(value));
@@ -86,6 +95,8 @@ namespace KoduStore
             using (var ms = new MemoryStream())
             using (var writer = new BinaryWriter(ms))
             {
+                writer.Write(IdPrefix);
+                writer.Write(ClassNameHash);
                 foreach (var idMember in _idMembers)
                 {
                     var serializer = idMember.Item2.Serializer;
@@ -116,7 +127,8 @@ namespace KoduStore
             using (var writer = new BinaryWriter(ms))
             {
                 var serializer = indexAttr.Serializer;
-                writer.Write(serializer.Serialize(indexAttr.Name));
+                writer.Write(IndexPrefix);
+                writer.Write(ByteUtils.StringToBytes(indexAttr.Name));
                 writer.Write(serializer.Serialize(this.GetValue(obj, member)));
                 writer.Write(primaryId.ToByteArray());
                 writer.Flush();

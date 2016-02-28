@@ -23,13 +23,7 @@ namespace KoduStore
                 [typeof(ushort)] = p => BitConverter.GetBytes((ushort)p),
                 [typeof(uint)] = p => BitConverter.GetBytes((uint)p),
                 [typeof(ulong)] = p => BitConverter.GetBytes((ulong)p),
-                [typeof(string)] = p =>
-                {
-                    var str = (string)p;
-                    byte[] bytes = new byte[str.Length * sizeof(char)];
-                    Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, bytes.Length);
-                    return bytes;
-                },
+                [typeof(string)] = p => ByteUtils.StringToBytes((string)p),
                 [typeof(DateTime)] = p => BitConverter.GetBytes(((DateTime)p).ToBinary()),
                 [typeof(DateTimeOffset)] = p => BitConverter.GetBytes(((DateTimeOffset)p).ToUnixTimeSeconds()),
                 [typeof(byte[])] = p => (byte[])p,
