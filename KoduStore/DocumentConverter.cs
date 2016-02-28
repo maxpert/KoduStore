@@ -11,9 +11,9 @@ namespace KoduStore
 {
     internal class DocumentConverter<T> where T : class
     {
-        private const byte IdPrefix = 1;
+        private const byte IdPrefix = 255;
 
-        private const byte IndexPrefix = 0;
+        private const byte IndexPrefix = 254;
 
         private static readonly byte[] ClassNameHash = ByteUtils.Hash(ByteUtils.StringToBytes(typeof(T).FullName));
 
