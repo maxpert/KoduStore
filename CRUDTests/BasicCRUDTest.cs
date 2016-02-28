@@ -97,8 +97,7 @@ namespace CRUDTests
             Assert.IsNotNull(item, "Unable to find entry");
             Assert.AreEqual(insertedObj.Created.ToString(), item.Created.ToString(), "Correct objects were not serialized");
         }
-
-
+        
         [TestMethod]
         public void TestBasicFindMissing()
         {
@@ -118,8 +117,7 @@ namespace CRUDTests
 
             Assert.IsTrue(foundItemIds.SetEquals(itemIds), "Unable to find all items");
         }
-
-
+        
         [TestMethod]
         public void TestFindIdRangeBackwards()
         {
@@ -131,6 +129,110 @@ namespace CRUDTests
             SortedSet<int> itemIds = new SortedSet<int>(items.Select(i => i.Id));
 
             Assert.IsTrue(foundItemIds.SetEquals(itemIds), "Unable to find all items");
+        }
+
+        [TestMethod]
+        public void TestFindFromForwards()
+        {
+            var items = this.CreateRandomBasicObjects(30);
+            _collection.Put(items);
+
+            IList<BasicObject> foundItems = _collection.FindFrom(p => p.Id);
+            SortedSet<int> foundItemIds = new SortedSet<int>(foundItems.Select(i => i.Id));
+            SortedSet<int> itemIds = new SortedSet<int>(items.Select(i => i.Id));
+
+            Assert.IsTrue(foundItemIds.SetEquals(itemIds), "Unable to find all items");
+        }
+        
+        [TestMethod]
+        public void TestFindFromBackwards()
+        {
+            var items = this.CreateRandomBasicObjects(30);
+            _collection.Put(items);
+
+            IList<BasicObject> foundItems = _collection.FindFrom(p => p.Id, 29, Collection<BasicObject>.ScanDirection.Backward);
+            SortedSet<int> foundItemIds = new SortedSet<int>(foundItems.Select(i => i.Id));
+            SortedSet<int> itemIds = new SortedSet<int>(items.Select(i => i.Id));
+
+            Assert.IsTrue(foundItemIds.SetEquals(itemIds), "Unable to find all items");
+        }
+
+        [TestMethod]
+        public void TestFindFromLimitTest()
+        {
+            var items = this.CreateRandomBasicObjects(30);
+            _collection.Put(items);
+
+            IList<BasicObject> foundItems = _collection.FindFrom(p => p.Id, 0, limit: 10);
+
+            Assert.IsTrue(foundItems.Count == 10, "Unable to find all items");
+        }
+
+        [TestMethod]
+        public void TestFindFromLimitBackwardsTest()
+        {
+            var items = this.CreateRandomBasicObjects(30);
+            _collection.Put(items);
+
+            IList<BasicObject> foundItems = _collection.FindFrom(p => p.Id, 10, Collection<BasicObject>.ScanDirection.Backward, limit: 10);
+
+            Assert.IsTrue(foundItems.Count == 10, "Unable to find all items");
+        }
+        
+        [TestMethod]
+        public void TestFindFromLessThanLimitTest()
+        {
+            var items = this.CreateRandomBasicObjects(30);
+            _collection.Put(items);
+
+            IList<BasicObject> foundItems = _collection.FindFrom(p => p.Id, 25, limit: 10);
+
+            Assert.IsTrue(foundItems.Count < 10, "Unable to find all items");
+        }
+
+        [TestMethod]
+        public void TestFindFromSecondaryIndexDupTest()
+        {
+            var items = this.CreateRandomBasicObjects(30);
+            foreach (var item in items)
+            {
+                item.SecondaryIndex = item.Id / 4;
+            }
+
+            _collection.Put(items);
+
+            IList<BasicObject> foundItems = _collection.FindFrom(p => p.SecondaryIndex);
+            Assert.IsTrue(foundItems.Count == 30, "Unable to find all items");
+        }
+        
+        [TestMethod]
+        public void TestFindFromSecondaryIndexLimitTest()
+        {
+            var items = this.CreateRandomBasicObjects(30);
+            foreach (var item in items)
+            {
+                item.SecondaryIndex = item.Id / 4;
+            }
+
+            _collection.Put(items);
+
+            IList<BasicObject> foundItems = _collection.FindFrom(p => p.SecondaryIndex, limit: 5);
+            Assert.IsTrue(foundItems.Count == 5, "Unable to find all items");
+        }
+
+        [TestMethod]
+        public void TestFindFromSecondaryIndexTest()
+        {
+            var items = this.CreateRandomBasicObjects(30);
+            foreach (var item in items)
+            {
+                item.SecondaryIndex = item.Id;
+            }
+
+            _collection.Put(items);
+
+            IList<BasicObject> foundItems = _collection.FindFrom(p => p.SecondaryIndex);
+            Assert.IsTrue(foundItems.Count == 30, "Unable to find all items");
         }
 
         [TestMethod]

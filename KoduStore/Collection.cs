@@ -15,6 +15,12 @@ namespace KoduStore
 {
     public class Collection<K> where K : class
     {
+        public enum ScanDirection
+        {
+            Forward = -1,
+            Backward = 1,
+        };
+
         private readonly string _path;
 
         private readonly ReaderWriterLockSlim _lock;
@@ -128,7 +134,6 @@ namespace KoduStore
             return this.FindMany(fieldExpression, keys);
         }
 
-
         public IList<K> FindMany<V>(Expression<Func<K, V>> fieldExpression, IEnumerable<V> keys)
         {
             var comparer = new SliceComparer();
@@ -143,12 +148,12 @@ namespace KoduStore
 
             return this.GetMultiple(docIds);
         }
-
+        
         public IList<K> FindRange<V>(Expression<Func<K, V>> fieldExpression, V start, V end)
         {
             var documents = new List<K>();
-            var docIds = new SortedSet<Slice>(new SliceComparer());
             var comparer = new SliceComparer();
+            var docIds = new SortedSet<Slice>(comparer);
 
             MemberInfo memberInfo = this.GetMemberInfoFromExpression(fieldExpression);
             bool isPrimaryIdLookup = _docConverter.IsPrimaryIdField(memberInfo);
@@ -185,6 +190,67 @@ namespace KoduStore
                 return documents;
             }
             
+            return this.GetMultiple(docIds);
+        }
+
+        public IList<K> FindFrom<V>(Expression<Func<K, V>> fieldExpression, V start, ScanDirection direction = ScanDirection.Forward, int limit = int.MaxValue)
+        {
+            return this.InternalFindFrom(fieldExpression, start, direction, limit);
+        }
+
+        public IList<K> FindFrom<V>(Expression<Func<K, V>> fieldExpression, ScanDirection direction = ScanDirection.Forward, int limit = int.MaxValue)
+        {
+            return this.InternalFindFrom(fieldExpression, null, direction, limit);
+        }
+
+        private IList<K> InternalFindFrom<V>(Expression<Func<K, V>> fieldExpression, object start, ScanDirection direction = ScanDirection.Forward, int limit = int.MaxValue)
+        {
+            var documents = new List<K>();
+            var comparer = new SliceComparer();
+            var docIds = new SortedSet<Slice>(comparer);
+
+            MemberInfo memberInfo = this.GetMemberInfoFromExpression(fieldExpression);
+            bool isPrimaryIdLookup = _docConverter.IsPrimaryIdField(memberInfo);
+            Slice startSlice = _docConverter.GetSliceFromMemberInfo(memberInfo, start, lookupIndex: !isPrimaryIdLookup);
+            byte[] prefixBytes = _docConverter.GetSliceFromMemberInfo(memberInfo, null, lookupIndex: !isPrimaryIdLookup)
+                                              .ToByteArray();
+
+            // Collect doc ids or documents (depending upon lookup type)
+            this.OnEach(startSlice, (k, v) =>
+            {
+                // If prefix changed we crossed over (scanning should stop)
+                if (!k.ToByteArray().HasPrefix(prefixBytes))
+                {
+                    return 0;
+                }
+
+                int count = 0;
+                if (isPrimaryIdLookup)
+                {
+                    documents.Add(_serializer.Deserialize(v.ToByteArray()));
+                    count = documents.Count;
+                }
+                else
+                {
+                    docIds.Add(v);
+                    count = docIds.Count;
+                }
+
+                // Filled limit, should exit
+                if (count >= limit)
+                {
+                    return 0;
+                }
+
+                return (int)direction;
+            });
+
+            // If it's already a primary Id lookup or no items found
+            if (isPrimaryIdLookup || docIds.Count < 0)
+            {
+                return documents;
+            }
+
             return this.GetMultiple(docIds);
         }
 

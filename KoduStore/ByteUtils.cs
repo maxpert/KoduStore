@@ -34,6 +34,16 @@ namespace KoduStore
             return cmp;
         }
 
+        public static bool HasPrefix(this byte[] a, byte[] b)
+        {
+            if (a.Length < b.Length)
+            {
+                return false;
+            }
+
+            return memcmp(a, b, b.Length) == 0;
+        }
+
         public static byte[] Hash(byte[] bytes)
         {
             var input = CryptographicBuffer.CreateFromByteArray(bytes);

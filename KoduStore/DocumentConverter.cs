@@ -46,7 +46,7 @@ namespace KoduStore
         {
             return _idMembers.Any(p => p.Item1 == info);
         }
-
+        
         public Slice GetSliceFromMemberInfo(MemberInfo memberInfo, object value, bool lookupIndex)
         {
             using (var ms = new MemoryStream())
@@ -83,7 +83,11 @@ namespace KoduStore
                     writer.Write(prefix);
                 }
 
-                writer.Write(serializer.Serialize(value));
+                if (value != null)
+                {
+                    writer.Write(serializer.Serialize(value));
+                }
+                
                 writer.Flush();
 
                 return Slice.FromByteArray(ms.ToArray());
