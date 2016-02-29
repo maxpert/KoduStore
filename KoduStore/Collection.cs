@@ -1,19 +1,14 @@
 ﻿using LevelDBWinRT;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using Windows.Storage;
 
 namespace KoduStore
 {
-    public class Collection<K> where K : class
+    public class Collection<T> where T : class
     {
         public enum ScanDirection
         {
@@ -25,24 +20,24 @@ namespace KoduStore
 
         private readonly ReaderWriterLockSlim _lock;
 
-        private readonly IObjectSerializer<K> _serializer;
+        private readonly IObjectSerializer<T> _serializer;
 
-        private readonly DocumentConverter<K> _docConverter;
+        private readonly DocumentConverter<T> _docConverter;
         
         private DB _db;
 
         public bool IsOpen => _db != null;
 
-        public Collection(string dbPath) : this(dbPath, new BsonObjectSerializer<K>())
+        public Collection(string dbPath) : this(dbPath, new BsonObjectSerializer<T>())
         {
         }
 
-        public Collection(string dbPath, IObjectSerializer<K> serializer)
+        public Collection(string dbPath, IObjectSerializer<T> serializer)
         {
             _serializer = serializer;
             _path = dbPath;
             _lock = new ReaderWriterLockSlim();
-            _docConverter = new DocumentConverter<K>();
+            _docConverter = new DocumentConverter<T>();
         }
 
         public void Open(bool createIfMissing = true)
@@ -62,12 +57,12 @@ namespace KoduStore
             _db = null;
         }
 
-        public bool Put(K obj, bool flush = false)
+        public bool Put(T obj, bool flush = false)
         {
-            return this.Put(new K[] { obj }, flush);
+            return this.Put(new[] { obj }, flush);
         }
 
-        public bool Put(IEnumerable<K> objs, bool flush = false)
+        public bool Put(IEnumerable<T> objs, bool flush = false)
         {
             try
             {
@@ -89,12 +84,12 @@ namespace KoduStore
             }
         }
 
-        public bool Delete(K item, bool flush = false)
+        public bool Delete(T item, bool flush = false)
         {
-            return this.Delete(new K[] { item }, flush);
+            return this.Delete(new T[] { item }, flush);
         }
         
-        public bool Delete(IEnumerable<K> items, bool flush = false)
+        public bool Delete(IEnumerable<T> items, bool flush = false)
         {
             try
             {
@@ -118,9 +113,9 @@ namespace KoduStore
             }
         }
 
-        public K Find<V>(Expression<Func<K, V>> fieldExpression, V value)
+        public T Find<V>(Expression<Func<T, V>> fieldExpression, V value)
         {
-            var foundList = this.FindRange<V>(fieldExpression, value, value);
+            var foundList = this.FindRange(fieldExpression, value, value);
             if (foundList.Count == 1)
             {
                 return foundList[0];
@@ -129,12 +124,12 @@ namespace KoduStore
             return null;
         }
 
-        public IList<K> FindMany<V>(Expression<Func<K, V>> fieldExpression, params V[] keys)
+        public IList<T> FindMany<V>(Expression<Func<T, V>> fieldExpression, params V[] keys)
         {
-            return this.FindMany(fieldExpression, keys);
+            return this.FindMany(fieldExpression, new List<V>(keys));
         }
 
-        public IList<K> FindMany<V>(Expression<Func<K, V>> fieldExpression, IEnumerable<V> keys)
+        public IList<T> FindMany<V>(Expression<Func<T, V>> fieldExpression, IEnumerable<V> keys)
         {
             var comparer = new SliceComparer();
             var docIds = new SortedSet<Slice>(comparer);
@@ -149,9 +144,9 @@ namespace KoduStore
             return this.GetMultiple(docIds);
         }
         
-        public IList<K> FindRange<V>(Expression<Func<K, V>> fieldExpression, V start, V end)
+        public IList<T> FindRange<V>(Expression<Func<T, V>> fieldExpression, V start, V end)
         {
-            var documents = new List<K>();
+            var documents = new List<T>();
             var comparer = new SliceComparer();
             var docIds = new SortedSet<Slice>(comparer);
 
@@ -193,19 +188,19 @@ namespace KoduStore
             return this.GetMultiple(docIds);
         }
 
-        public IList<K> FindFrom<V>(Expression<Func<K, V>> fieldExpression, V start, ScanDirection direction = ScanDirection.Forward, int limit = int.MaxValue)
+        public IList<T> FindFrom<V>(Expression<Func<T, V>> fieldExpression, V start, ScanDirection direction = ScanDirection.Forward, int limit = int.MaxValue)
         {
             return this.InternalFindFrom(fieldExpression, start, direction, limit);
         }
 
-        public IList<K> FindFrom<V>(Expression<Func<K, V>> fieldExpression, ScanDirection direction = ScanDirection.Forward, int limit = int.MaxValue)
+        public IList<T> FindFrom<V>(Expression<Func<T, V>> fieldExpression, ScanDirection direction = ScanDirection.Forward, int limit = int.MaxValue)
         {
             return this.InternalFindFrom(fieldExpression, null, direction, limit);
         }
 
-        private IList<K> InternalFindFrom<V>(Expression<Func<K, V>> fieldExpression, object start, ScanDirection direction = ScanDirection.Forward, int limit = int.MaxValue)
+        private IList<T> InternalFindFrom<V>(Expression<Func<T, V>> fieldExpression, object start, ScanDirection direction = ScanDirection.Forward, int limit = int.MaxValue)
         {
-            var documents = new List<K>();
+            var documents = new List<T>();
             var comparer = new SliceComparer();
             var docIds = new SortedSet<Slice>(comparer);
 
@@ -254,9 +249,9 @@ namespace KoduStore
             return this.GetMultiple(docIds);
         }
 
-        private IList<K> GetMultiple(IEnumerable<Slice> documentIds)
+        private IList<T> GetMultiple(IEnumerable<Slice> documentIds)
         {
-            List<K> documents = new List<K>();
+            List<T> documents = new List<T>();
             SliceComparer comparer = new SliceComparer();
             this.WithIterator(iterator =>
             {
@@ -319,7 +314,7 @@ namespace KoduStore
             }
         }
 
-        private MemberInfo GetMemberInfoFromExpression<V>(Expression<Func<K, V>> fieldExpression)
+        private MemberInfo GetMemberInfoFromExpression<V>(Expression<Func<T, V>> fieldExpression)
         {
             MemberInfo ret = null;
             if (fieldExpression.NodeType == ExpressionType.Lambda && fieldExpression.Body is MemberExpression)
@@ -336,7 +331,7 @@ namespace KoduStore
             return ret;
         }
 
-        private void PutInBatch(WriteBatch batch, K obj)
+        private void PutInBatch(WriteBatch batch, T obj)
         {
             var keySlice = _docConverter.GetKeySlice(obj);
             batch.Put(keySlice, Slice.FromByteArray(_serializer.Serialize(obj)));
@@ -346,10 +341,10 @@ namespace KoduStore
             }
         }
 
-        private void DeletePreviousIndexesInBatch(WriteBatch batch, IEnumerable<K> objs)
+        private void DeletePreviousIndexesInBatch(WriteBatch batch, IEnumerable<T> objs)
         {
             IEnumerable<Slice> previousIds = objs.Select(o => _docConverter.GetKeySlice(o));
-            IList<K> previousObjects = this.GetMultiple(previousIds);
+            IList<T> previousObjects = this.GetMultiple(previousIds);
             foreach (var i in previousObjects)
             {
                 if (i != null)
@@ -359,7 +354,7 @@ namespace KoduStore
             }
         }
 
-        private void DeleteIndexesInBatch(WriteBatch batch, K obj)
+        private void DeleteIndexesInBatch(WriteBatch batch, T obj)
         {
             foreach (var i in _docConverter.GetIndexKeySlices(obj))
             {

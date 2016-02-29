@@ -1,18 +1,32 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace KoduStore
 {
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
     public class SecondaryIndexAttribute : Attribute
     {
-        public Type FieldType { get; set; }
+        private Type _serializerType;
 
-        public IPropertyValueSerializer Serializer { get; set; } = BitConverterIndexedSerializer.Singleton;
+        internal IPropertyValueSerializer Serializer { get; private set; }
+
+        public Type SerializerType
+        {
+            get { return _serializerType; }
+            set
+            {
+                _serializerType = value;
+                if (_serializerType != null)
+                {
+                    this.Serializer = (IPropertyValueSerializer)Activator.CreateInstance(_serializerType);
+                }
+            }
+        }
 
         public string Name { get; set; } = string.Empty;
+
+        public SecondaryIndexAttribute()
+        {
+            this.Serializer = BitConverterIndexedSerializer.Singleton;
+        }
     }
 }

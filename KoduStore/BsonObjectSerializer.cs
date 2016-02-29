@@ -9,19 +9,19 @@ using System.Threading.Tasks;
 
 namespace KoduStore
 {
-    internal class BsonObjectSerializer<K> : IObjectSerializer<K> where K : class
+    internal class BsonObjectSerializer<T> : IObjectSerializer<T> where T : class
     {
-        public K Deserialize(byte[] bytes)
+        public T Deserialize(byte[] bytes)
         {
             using (var ms = new MemoryStream(bytes))
             using (var reader = new BsonReader(ms))
             {
                 var serializer = new JsonSerializer();
-                return serializer.Deserialize<K>(reader);
+                return serializer.Deserialize<T>(reader);
             }
         }
 
-        public byte[] Serialize(K doc)
+        public byte[] Serialize(T doc)
         {
             using (var ms = new MemoryStream())
             using (var writer = new BsonWriter(ms))

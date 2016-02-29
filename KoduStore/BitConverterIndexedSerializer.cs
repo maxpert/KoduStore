@@ -10,7 +10,7 @@ namespace KoduStore
     {
         public static readonly BitConverterIndexedSerializer Singleton = new BitConverterIndexedSerializer();
 
-        private static Dictionary<Type, Func<object, byte[]>> TypeSerializeMap =
+        private static Dictionary<Type, Func<object, byte[]>> TYPE_SERIALIZE_MAP =
             new Dictionary<Type, Func<object, byte[]>>()
             {
                 [typeof(bool)] = p => BitConverter.GetBytes((bool)p),
@@ -35,15 +35,15 @@ namespace KoduStore
         {
             if (field == null)
             {
-                throw new ArgumentNullException("field can not be null");
+                throw new ArgumentNullException("field");
             }
 
-            if (!TypeSerializeMap.ContainsKey(field.GetType()))
+            if (!TYPE_SERIALIZE_MAP.ContainsKey(field.GetType()))
             {
                 throw new InvalidCastException("Unable to serialize index field unknown type "+field.GetType().FullName);
             }
 
-            return TypeSerializeMap[field.GetType()](field);
+            return TYPE_SERIALIZE_MAP[field.GetType()](field);
         }
     }
 }

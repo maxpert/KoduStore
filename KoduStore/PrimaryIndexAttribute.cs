@@ -1,14 +1,30 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace KoduStore
 {
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
     public class PrimaryIndexAttribute : Attribute
     {
-        public IPropertyValueSerializer Serializer { get; set; } = BitConverterIndexedSerializer.Singleton;
+        private Type _serializerType;
+
+        internal virtual IPropertyValueSerializer Serializer { get; private set; }
+
+        public Type SerializerType
+        {
+            get { return _serializerType; }
+            set
+            {
+                _serializerType = value;
+                if (_serializerType != null)
+                {
+                    this.Serializer = (IPropertyValueSerializer)Activator.CreateInstance(_serializerType);
+                }
+            }
+        }
+
+        public PrimaryIndexAttribute()
+        {
+            this.Serializer = BitConverterIndexedSerializer.Singleton;
+        }
     }
 }

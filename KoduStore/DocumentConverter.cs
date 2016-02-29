@@ -61,21 +61,22 @@ namespace KoduStore
                     {
                         var idxInfo = _indexInfo.IndexAttributeMap[memberInfo][0];
                         serializer = idxInfo.Serializer;
-                        prefix = serializer.Serialize(idxInfo.Name);
+                        if (serializer != null)
+                        {
+                            prefix = serializer.Serialize(idxInfo.Name);
+                        }
                     }
                 }
                 else
                 {
-                    var keyTuple = _idMembers.FirstOrDefault(t => t.Item1 == memberInfo);
+                    var keyTuple = _idMembers.FirstOrDefault(t => Equals(t.Item1, memberInfo));
                     serializer = keyTuple?.Item2.Serializer;
-                    prefix = serializer.Serialize(ClassNameHash);
+                    if (serializer != null)
+                    {
+                        prefix = serializer.Serialize(ClassNameHash);
+                    }
                 }
-
-                if (serializer == null)
-                {
-                    throw new InvalidOperationException(memberInfo.Name + " has no index and it's not a primary key to do a lookup");
-                }
-
+                
                 writer.Write(lookupIndex ? IndexPrefix : IdPrefix);
 
                 if (prefix != null)
@@ -85,7 +86,9 @@ namespace KoduStore
 
                 if (value != null)
                 {
-                    writer.Write(serializer.Serialize(value));
+                    var serializedBytes = serializer.Serialize(value);
+                    this.VerifySerializedBytes(serializedBytes);
+                    writer.Write(serializedBytes);
                 }
                 
                 writer.Flush();
@@ -105,6 +108,7 @@ namespace KoduStore
                 {
                     var serializer = idMember.Item2.Serializer;
                     var serializedBytes = serializer.Serialize(this.GetValue(obj, idMember.Item1));
+                    this.VerifySerializedBytes(serializedBytes);
                     writer.Write(serializedBytes);
                 }
 
@@ -115,14 +119,11 @@ namespace KoduStore
 
         public IList<Slice> GetIndexKeySlices(T obj)
         {
-            var tuples = new List<Slice>();
             var keyTuple = this.GetKeySlice(obj);
-            foreach (var indexMember in _indexInfo.GetIndexMembersList())
-            {
-                tuples.Add(this.GetIndexKeySlice(obj, indexMember.Item1, indexMember.Item2, keyTuple));
-            }
 
-            return tuples;
+            return _indexInfo.GetIndexMembersList()
+                             .Select(indexMember => this.GetIndexKeySlice(obj, indexMember.Item1, indexMember.Item2, keyTuple))
+                             .ToList();
         }
 
         private Slice GetIndexKeySlice(T obj, MemberInfo member, SecondaryIndexAttribute indexAttr, Slice primaryId)
@@ -131,9 +132,11 @@ namespace KoduStore
             using (var writer = new BinaryWriter(ms))
             {
                 var serializer = indexAttr.Serializer;
+                var serializedBytes = serializer.Serialize(this.GetValue(obj, member));
+                this.VerifySerializedBytes(serializedBytes);
                 writer.Write(IndexPrefix);
                 writer.Write(ByteUtils.StringToBytes(indexAttr.Name));
-                writer.Write(serializer.Serialize(this.GetValue(obj, member)));
+                writer.Write(serializedBytes);
                 writer.Write(primaryId.ToByteArray());
                 writer.Flush();
 
@@ -149,6 +152,14 @@ namespace KoduStore
             }
 
             return ((FieldInfo)info).GetValue(obj);
+        }
+
+        private void VerifySerializedBytes(byte[] bytes)
+        {
+            if (bytes == null)
+            {
+                throw new InvalidDataException("Property serializer does not support specified value type");
+            }
         }
     }
 }

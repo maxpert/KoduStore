@@ -1,7 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
 using KoduStore;
-using Windows.Storage;
 using System.Runtime.Serialization;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,14 +10,14 @@ namespace CRUDTests
     [TestClass]
     public class BasicCRUDTest
     {
-        private static int Accumulator = 0;
+        private static int ACCUMULATOR = 0;
 
         [DataContract]
         private class BasicObject
         {
             [DataMember]
             [PrimaryIndex]
-            public int Id { get; set; }
+            public int Id;
 
             [DataMember]
             [SecondaryIndex]
@@ -33,16 +32,19 @@ namespace CRUDTests
         [TestInitialize]
         public void OnInitialize()
         {
-            Accumulator++;
-            _collection = new Collection<BasicObject>($"basic_crud_{Accumulator}");
+            ACCUMULATOR++;
+            _collection = new Collection<BasicObject>($"basic_crud_{ACCUMULATOR}");
             _collection.Open();
         }
 
         [TestCleanup]
         public void OnCleanup()
         {
-            _collection.Close();
-            _collection = null;
+            if (_collection.IsOpen)
+            {
+                _collection.Close();
+                _collection = null;
+            }
         }
 
         [TestMethod]
@@ -337,6 +339,18 @@ namespace CRUDTests
             Assert.IsTrue(_collection.Delete(items), "Unable to delete multiple items");
             Assert.IsFalse(
                 _collection.FindMany(p => p.Id, items.Select(i => i.Id).ToList()).Any(i => i != null),
+                "Some item was found when it should have been deleted");
+        }
+
+        [TestMethod]
+        public void TestDeleteMultipleObjectsWithParams()
+        {
+            var items = this.CreateRandomBasicObjects(5);
+            _collection.Put(items);
+
+            Assert.IsTrue(_collection.Delete(items), "Unable to delete multiple items");
+            Assert.IsFalse(
+                _collection.FindMany(p => p.Id, 0, 1, 2, 3, 4).Any(i => i != null),
                 "Some item was found when it should have been deleted");
         }
 
