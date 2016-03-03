@@ -43,15 +43,15 @@ namespace KoduStore
 
         public IList<T> GetAll(V start)
         {
-            return this.InternalFindFrom<T>(start);
+            return this.InternalFindFrom(start);
         }
 
         public IList<T> GetAll()
         {
-            return this.InternalFindFrom<T>(null);
+            return this.InternalFindFrom(null);
         } 
 
-        private IList<T> InternalFindFrom<V>(object start)
+        private IList<T> InternalFindFrom(object start)
         {
             var documents = new List<T>();
             var comparer = new SliceComparer();
