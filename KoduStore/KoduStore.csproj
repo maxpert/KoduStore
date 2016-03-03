@@ -111,7 +111,12 @@
     <Compile Include="BsonObjectSerializer.cs" />
     <Compile Include="ByteUtils.cs" />
     <Compile Include="Collection.cs" />
+    <Compile Include="BaseCollectionQuery.cs" />
+    <Compile Include="CollectionKeysQuery.cs" />
+    <Compile Include="CollectionRangeQuery.cs" />
+    <Compile Include="CollectionScanQuery.cs" />
     <Compile Include="DocumentConverter.cs" />
+    <Compile Include="ICollectionQuery.cs" />
     <Compile Include="IndexInfo.cs" />
     <Compile Include="SecondaryIndexAttribute.cs" />
     <Compile Include="IPropertyValueSerializer.cs" />

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization;
 using KoduStore;
 using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
@@ -72,7 +73,9 @@ namespace CRUDTests
             var t = new TestInternalObject() {Id = 0, Name = "Hello"};
             _collection.Put(t);
 
-            Assert.IsNull(_collection.Find(o => o.Id, 0), "Unable to find o");
+            var query = _collection.Query(o => o.Id);
+            Assert.IsNull(query.Get(0).FirstOrDefault(), "Unable to find o");
+            query.Dispose();
         }
 
         [TestMethod]

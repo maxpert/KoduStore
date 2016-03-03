@@ -10,7 +10,7 @@ namespace CRUDTests
     [TestClass]
     public class BasicCRUDTest
     {
-        private static int ACCUMULATOR = 0;
+        private static int ACCUMULATOR;
 
         [DataContract]
         private class BasicObject
@@ -57,7 +57,7 @@ namespace CRUDTests
         [TestMethod]
         public void TestBatchPut()
         {
-            var success = _collection.Put(new BasicObject[]
+            var success = _collection.Put(new []
             {
                 new BasicObject { Id = new Random().Next(10, 1000000) },
                 new BasicObject { Id = new Random().Next(10, 1000000) },
@@ -81,7 +81,10 @@ namespace CRUDTests
             entry.SecondaryIndex = 40;
             entry.Created = DateTimeOffset.Now;
             Assert.IsTrue(_collection.Put(entry));
-            Assert.IsNull(_collection.Find(p => p.SecondaryIndex, 30), "Index was not cleared for updated object");
+            using (var query = _collection.Query(p => p.SecondaryIndex))
+            {
+                Assert.IsNull(query.Get(30).FirstOrDefault() , "Index was not cleared for updated object");
+            }
         }
 
         [TestMethod]
@@ -93,7 +96,11 @@ namespace CRUDTests
             };
 
             var inserted = _collection.Put(insertedObj);
-            var item = _collection.Find(p => p.Id, 0);
+            BasicObject item;
+            using (var query = _collection.Query(p => p.Id))
+            {
+                item = query.Get(0).FirstOrDefault();
+            }
 
             Assert.IsTrue(inserted, "Unable to add entry");
             Assert.IsNotNull(item, "Unable to find entry");
@@ -103,8 +110,11 @@ namespace CRUDTests
         [TestMethod]
         public void TestBasicFindMissing()
         {
-            var item = _collection.Find(p => p.Id, -1000);
-            Assert.IsNull(item, "Unable to find entry");
+            using (var query = _collection.Query(p => p.Id))
+            {
+                var p = query.Get(-1000).First();
+                Assert.IsNull(p, "Unable to find entry");
+            }
         }
 
         [TestMethod]
@@ -113,10 +123,12 @@ namespace CRUDTests
             var items = this.CreateRandomBasicObjects(30);
             _collection.Put(items);
 
-            IList<BasicObject> foundItems = _collection.FindRange(p => p.Id, 0, items.Count - 1);
+            var query = _collection.QueryRange(p => p.Id);
+            IList<BasicObject> foundItems = query.Get(0, items.Count - 1);
+            query.Dispose();
             SortedSet<int> foundItemIds = new SortedSet<int>(foundItems.Select(i => i.Id));
             SortedSet<int> itemIds = new SortedSet<int>(items.Select(i => i.Id));
-
+            
             Assert.IsTrue(foundItemIds.SetEquals(itemIds), "Unable to find all items");
         }
         
@@ -126,9 +138,11 @@ namespace CRUDTests
             var items = this.CreateRandomBasicObjects(30);
             _collection.Put(items);
 
-            IList<BasicObject> foundItems = _collection.FindRange(p => p.Id, items.Count - 1, 0);
+            var query = _collection.QueryRange(p => p.Id);
+            IList<BasicObject> foundItems = query.Get(items.Count - 1, 0);
             SortedSet<int> foundItemIds = new SortedSet<int>(foundItems.Select(i => i.Id));
             SortedSet<int> itemIds = new SortedSet<int>(items.Select(i => i.Id));
+            query.Dispose();
 
             Assert.IsTrue(foundItemIds.SetEquals(itemIds), "Unable to find all items");
         }
@@ -139,9 +153,11 @@ namespace CRUDTests
             var items = this.CreateRandomBasicObjects(30);
             _collection.Put(items);
 
-            IList<BasicObject> foundItems = _collection.FindFrom(p => p.Id);
+            var query = _collection.QueryScan(p => p.Id);
+            IList<BasicObject> foundItems = query.GetAll();
             SortedSet<int> foundItemIds = new SortedSet<int>(foundItems.Select(i => i.Id));
             SortedSet<int> itemIds = new SortedSet<int>(items.Select(i => i.Id));
+            query.Dispose();
 
             Assert.IsTrue(foundItemIds.SetEquals(itemIds), "Unable to find all items");
         }
@@ -152,9 +168,11 @@ namespace CRUDTests
             var items = this.CreateRandomBasicObjects(30);
             _collection.Put(items);
 
-            IList<BasicObject> foundItems = _collection.FindFrom(p => p.Id, 29, Collection<BasicObject>.ScanDirection.Backward);
+            var query = _collection.QueryScan(p => p.Id).Backward();
+            IList<BasicObject> foundItems = query.GetAll(29);
             SortedSet<int> foundItemIds = new SortedSet<int>(foundItems.Select(i => i.Id));
             SortedSet<int> itemIds = new SortedSet<int>(items.Select(i => i.Id));
+            query.Dispose();
 
             Assert.IsTrue(foundItemIds.SetEquals(itemIds), "Unable to find all items");
         }
@@ -165,7 +183,10 @@ namespace CRUDTests
             var items = this.CreateRandomBasicObjects(30);
             _collection.Put(items);
 
-            IList<BasicObject> foundItems = _collection.FindFrom(p => p.Id, 0, limit: 10);
+            var query = _collection.QueryScan(p => p.Id);
+            query.Limit(10);
+            IList <BasicObject> foundItems = query.GetAll(0);
+            query.Dispose();
 
             Assert.IsTrue(foundItems.Count == 10, "Unable to find all items");
         }
@@ -176,7 +197,10 @@ namespace CRUDTests
             var items = this.CreateRandomBasicObjects(30);
             _collection.Put(items);
 
-            IList<BasicObject> foundItems = _collection.FindFrom(p => p.Id, 10, Collection<BasicObject>.ScanDirection.Backward, limit: 10);
+            var query = _collection.QueryScan(p => p.Id);
+            query.Backward().Limit(10);
+            IList<BasicObject> foundItems = query.GetAll(10);
+            query.Dispose();
 
             Assert.IsTrue(foundItems.Count == 10, "Unable to find all items");
         }
@@ -187,7 +211,10 @@ namespace CRUDTests
             var items = this.CreateRandomBasicObjects(30);
             _collection.Put(items);
 
-            IList<BasicObject> foundItems = _collection.FindFrom(p => p.Id, 25, limit: 10);
+            var query = _collection.QueryScan(p => p.Id);
+            query.Forward().Limit(10);
+            IList <BasicObject> foundItems = query.GetAll(25);
+            query.Dispose();
 
             Assert.IsTrue(foundItems.Count < 10, "Unable to find all items");
         }
@@ -203,7 +230,10 @@ namespace CRUDTests
 
             _collection.Put(items);
 
-            IList<BasicObject> foundItems = _collection.FindFrom(p => p.SecondaryIndex);
+            var query = _collection.QueryScan(p => p.SecondaryIndex);
+            IList<BasicObject> foundItems = query.GetAll();
+            query.Dispose();
+
             Assert.IsTrue(foundItems.Count == 30, "Unable to find all items");
         }
         
@@ -218,7 +248,10 @@ namespace CRUDTests
 
             _collection.Put(items);
 
-            IList<BasicObject> foundItems = _collection.FindFrom(p => p.SecondaryIndex, limit: 5);
+            var query = _collection.QueryScan(p => p.SecondaryIndex).Limit(5);
+            IList<BasicObject> foundItems = query.GetAll();
+            query.Dispose();
+
             Assert.IsTrue(foundItems.Count == 5, "Unable to find all items");
         }
 
@@ -233,7 +266,10 @@ namespace CRUDTests
 
             _collection.Put(items);
 
-            IList<BasicObject> foundItems = _collection.FindFrom(p => p.SecondaryIndex);
+            var query = _collection.QueryScan(p => p.SecondaryIndex);
+            IList<BasicObject> foundItems = query.GetAll();
+            query.Dispose();
+
             Assert.IsTrue(foundItems.Count == 30, "Unable to find all items");
         }
 
@@ -246,8 +282,10 @@ namespace CRUDTests
                 SecondaryIndex = 200,
             };
 
-            var inserted = _collection.Put(insertedObj);
-            var items = _collection.FindRange(p => p.SecondaryIndex, insertedObj.SecondaryIndex, insertedObj.SecondaryIndex);
+            _collection.Put(insertedObj);
+            var query = _collection.QueryRange(p => p.SecondaryIndex);
+            var items = query.Get(insertedObj.SecondaryIndex, insertedObj.SecondaryIndex);
+            query.Dispose();
 
             Assert.IsTrue(items.Count == 1, "Unable lookup items from secondary index");
         }
@@ -262,7 +300,9 @@ namespace CRUDTests
             }
             _collection.Put(items);
 
-            var foundItems = _collection.FindRange(p => p.SecondaryIndex, items.Count, items.Count);
+            var query = _collection.QueryRange(p => p.SecondaryIndex);
+            var foundItems = query.Get(items.Count, items.Count);
+            query.Dispose();
             SortedSet<int> foundItemIds = new SortedSet<int>(foundItems.Select(i => i.Id));
             SortedSet<int> itemIds = new SortedSet<int>(items.Select(i => i.Id));
 
@@ -279,7 +319,9 @@ namespace CRUDTests
             }
             _collection.Put(items);
 
-            var foundItems = _collection.FindRange(p => p.SecondaryIndex, items[0].SecondaryIndex, items.Last().SecondaryIndex);
+            var query = _collection.QueryRange(p => p.SecondaryIndex);
+            var foundItems = query.Get(items[0].SecondaryIndex, items.Last().SecondaryIndex);
+            query.Dispose();
             SortedSet<int> foundItemIds = new SortedSet<int>(foundItems.Select(i => i.Id));
             SortedSet<int> itemIds = new SortedSet<int>(items.Select(i => i.Id));
 
@@ -296,7 +338,9 @@ namespace CRUDTests
             }
             _collection.Put(items);
 
-            var foundItems = _collection.FindRange(p => p.SecondaryIndex, items.Last().SecondaryIndex, items[0].SecondaryIndex);
+            var query = _collection.QueryRange(p => p.SecondaryIndex);
+            var foundItems = query.Get(items.Last().SecondaryIndex, items[0].SecondaryIndex);
+            query.Dispose();
             SortedSet<int> foundItemIds = new SortedSet<int>(foundItems.Select(i => i.Id));
             SortedSet<int> itemIds = new SortedSet<int>(items.Select(i => i.Id));
 
@@ -313,7 +357,9 @@ namespace CRUDTests
             }
             _collection.Put(items);
 
-            var foundItems = _collection.FindRange(p => p.SecondaryIndex, 0, 100000);
+            var query = _collection.QueryRange(p => p.SecondaryIndex);
+            var foundItems = query.Get(0, 100000);
+            query.Dispose();
             SortedSet<int> foundItemIds = new SortedSet<int>(foundItems.Select(i => i.Id));
             SortedSet<int> itemIds = new SortedSet<int>(items.Select(i => i.Id));
 
@@ -327,7 +373,10 @@ namespace CRUDTests
             _collection.Put(item);
             
             Assert.IsTrue(_collection.Delete(item), "Unable to delete single item");
-            Assert.IsNull(_collection.Find(p => p.Id, 100), "Item was not totally deleted");
+            var query = _collection.Query(p => p.Id);
+            var gitem = query.Get(100).FirstOrDefault();
+            Assert.IsNull(gitem, "Item was not totally deleted");
+            query.Dispose();
         }
 
         [TestMethod]
@@ -337,9 +386,11 @@ namespace CRUDTests
             _collection.Put(items);
 
             Assert.IsTrue(_collection.Delete(items), "Unable to delete multiple items");
+            var query = _collection.Query(p => p.Id);
             Assert.IsFalse(
-                _collection.FindMany(p => p.Id, items.Select(i => i.Id).ToList()).Any(i => i != null),
+                query.GetAll(items.Select(i => i.Id).ToList()).Any(i => i != null),
                 "Some item was found when it should have been deleted");
+            query.Dispose();
         }
 
         [TestMethod]
@@ -349,9 +400,11 @@ namespace CRUDTests
             _collection.Put(items);
 
             Assert.IsTrue(_collection.Delete(items), "Unable to delete multiple items");
+            var query = _collection.Query(p => p.Id);
             Assert.IsFalse(
-                _collection.FindMany(p => p.Id, 0, 1, 2, 3, 4).Any(i => i != null),
+                query.Get(0, 1, 2, 3, 4).Any(i => i != null),
                 "Some item was found when it should have been deleted");
+            query.Dispose();
         }
 
         [TestMethod]
@@ -361,7 +414,9 @@ namespace CRUDTests
             _collection.Put(item);
 
             Assert.IsTrue(_collection.Delete(item), "Unable to delete single item");
-            Assert.IsNull(_collection.Find(p => p.SecondaryIndex, 30), "Item index was not cleanedup");
+            var query = _collection.Query(p => p.SecondaryIndex);
+            Assert.IsNull(query.Get(30).FirstOrDefault(), "Item index was not cleanedup");
+            query.Dispose();
         }
 
         private IList<BasicObject> CreateRandomBasicObjects(int count)
