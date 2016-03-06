@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
 using LevelDBWinRT;
@@ -58,9 +59,38 @@ namespace KoduStore
             var docIds = new SortedSet<Slice>(comparer);
             
             bool isPrimaryIdLookup = _documentFieldConverter.IsPrimaryIdField(_memberInfo);
-            Slice startSlice = _documentFieldConverter.GetSliceFromMemberInfo(_memberInfo, start, lookupIndex: !isPrimaryIdLookup);
-            Slice prefixSlice = _documentFieldConverter.GetSliceFromMemberInfo(_memberInfo, null, lookupIndex: !isPrimaryIdLookup);
+            _lock.EnterReadLock();
+            try
+            {
+                this.InternalScanFromStart(start, isPrimaryIdLookup, documents, docIds);
+            }
+            finally 
+            {
+                
+                _lock.ExitReadLock();
+            }
+            
+            // If it's already a primary Id lookup or no items found
+            if (isPrimaryIdLookup || docIds.Count < 0)
+            {
+                return documents;
+            }
+
+            return this.GetMultiple(docIds);
+        }
+
+        private void InternalScanFromStart(object start, bool isPrimaryIdLookup, List<T> documents, SortedSet<Slice> docIds)
+        {
+            Slice startSlice = _documentFieldConverter.GetSliceFromMemberInfo(
+                                        _memberInfo, 
+                                        start, 
+                                        lookupIndex: !isPrimaryIdLookup);
+            Slice prefixSlice = _documentFieldConverter.GetSliceFromMemberInfo(
+                                        _memberInfo, 
+                                        null,
+                                        lookupIndex: !isPrimaryIdLookup);
             byte[] prefixBytes = prefixSlice.ToByteArray();
+
 
             using (var snapshot = _db.GetSnapshot())
             using (var iterator = _db.NewIterator(new ReadOptions {FillCache = true, Snapshot = snapshot}))
@@ -70,12 +100,12 @@ namespace KoduStore
                 // If start == null then prefixSlice == startSlice
                 // in that case we should use _direction to determine our start
                 if (start == null ||
-                    !iterator.Valid() || 
+                    !iterator.Valid() ||
                     !iterator.Key().ToByteArray().HasPrefix(prefixBytes))
                 {
                     this.SeekIteratorToBoundary(iterator, prefixSlice);
                 }
-                
+
                 while (iterator.Valid())
                 {
                     var k = iterator.Key();
@@ -106,14 +136,6 @@ namespace KoduStore
                     }
                 }
             }
-
-            // If it's already a primary Id lookup or no items found
-            if (isPrimaryIdLookup || docIds.Count < 0)
-            {
-                return documents;
-            }
-
-            return this.GetMultiple(docIds);
         }
 
         private void SeekIteratorToBoundary(Iterator iterator, Slice prefixSlice)
