@@ -274,6 +274,24 @@ namespace CRUDTests
         }
 
         [TestMethod]
+        public void TestFindFromSecondaryIndexReverseTest()
+        {
+            var items = this.CreateRandomBasicObjects(30);
+            foreach (var item in items)
+            {
+                item.SecondaryIndex = item.Id;
+            }
+
+            _collection.Put(items);
+
+            var query = _collection.QueryScan(p => p.SecondaryIndex);
+            IList<BasicObject> foundItems = query.Backward().GetAll();
+            query.Dispose();
+
+            Assert.IsTrue(foundItems.Count == 30, "Unable to find all items");
+        }
+
+        [TestMethod]
         public void TestFindSecondaryIndex()
         {
             var insertedObj = new BasicObject
