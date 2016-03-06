@@ -3,6 +3,14 @@
   "version": 1,
   "targets": {
     "UAP,Version=v10.0": {
+      "LevelDB.UWP/1.18.0-beta": {
+        "compile": {
+          "lib/uap10.0/LevelDBWinRT.winmd": {}
+        },
+        "runtime": {
+          "lib/uap10.0/LevelDBWinRT.winmd": {}
+        }
+      },
       "Microsoft.CSharp/4.0.0": {
         "dependencies": {
           "System.Collections": "[4.0.10, )",
@@ -209,6 +217,7 @@
           "lib/portable-net45+wp80+win8+wpa81+dnxcore50/Newtonsoft.Json.dll": {}
         }
       },
+      "NuSpec.ReferenceGenerator/1.4.2": {},
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Collections": "[4.0.0, )",
@@ -1546,6 +1555,17 @@
       }
     },
     "UAP,Version=v10.0/win10-arm": {
+      "LevelDB.UWP/1.18.0-beta": {
+        "compile": {
+          "lib/uap10.0/LevelDBWinRT.winmd": {}
+        },
+        "runtime": {
+          "lib/uap10.0/LevelDBWinRT.winmd": {}
+        },
+        "native": {
+          "runtimes/win10-arm/native/LevelDBWinRT.dll": {}
+        }
+      },
       "Microsoft.CSharp/4.0.0": {
         "dependencies": {
           "System.Collections": "[4.0.10, )",
@@ -1795,6 +1815,7 @@
           "lib/portable-net45+wp80+win8+wpa81+dnxcore50/Newtonsoft.Json.dll": {}
         }
       },
+      "NuSpec.ReferenceGenerator/1.4.2": {},
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Collections": "[4.0.0, )",
@@ -3179,6 +3200,17 @@
       }
     },
     "UAP,Version=v10.0/win10-arm-aot": {
+      "LevelDB.UWP/1.18.0-beta": {
+        "compile": {
+          "lib/uap10.0/LevelDBWinRT.winmd": {}
+        },
+        "runtime": {
+          "lib/uap10.0/LevelDBWinRT.winmd": {}
+        },
+        "native": {
+          "runtimes/win10-arm/native/LevelDBWinRT.dll": {}
+        }
+      },
       "Microsoft.CSharp/4.0.0": {
         "dependencies": {
           "System.Collections": "[4.0.10, )",
@@ -3414,6 +3446,7 @@
           "lib/portable-net45+wp80+win8+wpa81+dnxcore50/Newtonsoft.Json.dll": {}
         }
       },
+      "NuSpec.ReferenceGenerator/1.4.2": {},
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Collections": "[4.0.0, )",
@@ -4784,6 +4817,17 @@
       }
     },
     "UAP,Version=v10.0/win10-x64": {
+      "LevelDB.UWP/1.18.0-beta": {
+        "compile": {
+          "lib/uap10.0/LevelDBWinRT.winmd": {}
+        },
+        "runtime": {
+          "lib/uap10.0/LevelDBWinRT.winmd": {}
+        },
+        "native": {
+          "runtimes/win10-x64/native/LevelDBWinRT.dll": {}
+        }
+      },
       "Microsoft.CSharp/4.0.0": {
         "dependencies": {
           "System.Collections": "[4.0.10, )",
@@ -5038,6 +5082,7 @@
           "lib/portable-net45+wp80+win8+wpa81+dnxcore50/Newtonsoft.Json.dll": {}
         }
       },
+      "NuSpec.ReferenceGenerator/1.4.2": {},
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Collections": "[4.0.0, )",
@@ -6422,6 +6467,17 @@
       }
     },
     "UAP,Version=v10.0/win10-x64-aot": {
+      "LevelDB.UWP/1.18.0-beta": {
+        "compile": {
+          "lib/uap10.0/LevelDBWinRT.winmd": {}
+        },
+        "runtime": {
+          "lib/uap10.0/LevelDBWinRT.winmd": {}
+        },
+        "native": {
+          "runtimes/win10-x64/native/LevelDBWinRT.dll": {}
+        }
+      },
       "Microsoft.CSharp/4.0.0": {
         "dependencies": {
           "System.Collections": "[4.0.10, )",
@@ -6657,6 +6713,7 @@
           "lib/portable-net45+wp80+win8+wpa81+dnxcore50/Newtonsoft.Json.dll": {}
         }
       },
+      "NuSpec.ReferenceGenerator/1.4.2": {},
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Collections": "[4.0.0, )",
@@ -8027,6 +8084,17 @@
       }
     },
     "UAP,Version=v10.0/win10-x86": {
+      "LevelDB.UWP/1.18.0-beta": {
+        "compile": {
+          "lib/uap10.0/LevelDBWinRT.winmd": {}
+        },
+        "runtime": {
+          "lib/uap10.0/LevelDBWinRT.winmd": {}
+        },
+        "native": {
+          "runtimes/win10-x86/native/LevelDBWinRT.dll": {}
+        }
+      },
       "Microsoft.CSharp/4.0.0": {
         "dependencies": {
           "System.Collections": "[4.0.10, )",
@@ -8281,6 +8349,7 @@
           "lib/portable-net45+wp80+win8+wpa81+dnxcore50/Newtonsoft.Json.dll": {}
         }
       },
+      "NuSpec.ReferenceGenerator/1.4.2": {},
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Collections": "[4.0.0, )",
@@ -9665,6 +9734,17 @@
       }
     },
     "UAP,Version=v10.0/win10-x86-aot": {
+      "LevelDB.UWP/1.18.0-beta": {
+        "compile": {
+          "lib/uap10.0/LevelDBWinRT.winmd": {}
+        },
+        "runtime": {
+          "lib/uap10.0/LevelDBWinRT.winmd": {}
+        },
+        "native": {
+          "runtimes/win10-x86/native/LevelDBWinRT.dll": {}
+        }
+      },
       "Microsoft.CSharp/4.0.0": {
         "dependencies": {
           "System.Collections": "[4.0.10, )",
@@ -9900,6 +9980,7 @@
           "lib/portable-net45+wp80+win8+wpa81+dnxcore50/Newtonsoft.Json.dll": {}
         }
       },
+      "NuSpec.ReferenceGenerator/1.4.2": {},
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Collections": "[4.0.0, )",
@@ -11271,6 +11352,21 @@
     }
   },
   "libraries": {
+    "LevelDB.UWP/1.18.0-beta": {
+      "sha512": "mWy/Hc+Xdsa/l6PJ9ma5h0SEPzdIAU/es8BUCnB9YrDfLNe+5xd+FUc3SfQLguV4bAIejCdZ0lVnnaMA5jxSwQ==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "build/native/LevelDBUAP.targets",
+        "LevelDB.UWP.nuspec",
+        "lib/uap10.0/LevelDBWinRT.winmd",
+        "package/services/metadata/core-properties/158ac3c34da04e64a8bb1488d0adac2c.psmdcp",
+        "runtimes/win10-arm/native/LevelDBWinRT.dll",
+        "runtimes/win10-x64/native/LevelDBWinRT.dll",
+        "runtimes/win10-x86/native/LevelDBWinRT.dll"
+      ]
+    },
     "Microsoft.CSharp/4.0.0": {
       "sha512": "oWqeKUxHXdK6dL2CFjgMcaBISbkk+AqEg+yvJHE4DElNzS4QaTsCflgkkqZwVlWby1Dg9zo9n+iCAMFefFdJ/A==",
       "type": "Package",
@@ -11945,6 +12041,21 @@
         "Newtonsoft.Json.nuspec",
         "package/services/metadata/core-properties/cc8c591d554640789c6a6ef6456f7772.psmdcp",
         "tools/install.ps1"
+      ]
+    },
+    "NuSpec.ReferenceGenerator/1.4.2": {
+      "sha512": "Ede6MV1IFitgCg+D1Z4ruiLyv+chR4BMjzxLm0qp0IFZHsri4m4IYD4LGwyUnb9LdADsdaWxn12BonXGyQdejA==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "build/dotnet/NuSpec.ReferenceGenerator.targets",
+        "build/portable-net45+win+wpa81+wp80+MonoAndroid10+xamarinios10+MonoTouch10/NuSpec.ReferenceGenerator.targets",
+        "NuSpec.ReferenceGenerator.nuspec",
+        "package/services/metadata/core-properties/73b5a943f8ce42ad90657060c9ff788c.psmdcp",
+        "tools/RefGen.exe",
+        "tools/RefGen.exe.config",
+        "tools/RefGen.pdb"
       ]
     },
     "System.AppContext/4.0.0": {

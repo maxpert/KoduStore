@@ -17,9 +17,7 @@ namespace KoduStore
         internal DocumentConverter<T> _documentFieldConverter;
 
         internal MemberInfo _memberInfo;
-
-        internal Snapshot _snapshot;
-
+        
         internal BaseCollectionQuery(
             DB database, 
             ReaderWriterLockSlim readerLock, 
@@ -32,19 +30,16 @@ namespace KoduStore
             _memberInfo = memberInfo;
             _objectSerializer = objectSerializer;
             _documentFieldConverter = documentConverter;
-            _snapshot = _db.GetSnapshot();
         }
 
         public void Dispose()
         {
-            _db.ReleaseSnapshot(_snapshot);
             _db = null;
             _lock = null;
             _memberInfo = null;
             _objectSerializer = null;
             _documentFieldConverter = null;
-            _snapshot = null;
-
+            
             Dispose(true);
             GC.SuppressFinalize(this);
         }
@@ -84,7 +79,8 @@ namespace KoduStore
             try
             {
                 _lock.EnterReadLock();
-                using (var iterator = _db.NewIterator(new ReadOptions { Snapshot = _snapshot }))
+                using (var snapshot = _db.GetSnapshot())
+                using (var iterator = _db.NewIterator(new ReadOptions { Snapshot = snapshot }))
                 {
                     callback(iterator);
                 }

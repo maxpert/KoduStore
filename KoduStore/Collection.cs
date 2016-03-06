@@ -172,11 +172,10 @@ namespace KoduStore
 
         private void DeletePreviousIndexesInBatch(WriteBatch batch, IEnumerable<T> objs)
         {
-            var snapshot = _db.GetSnapshot();
-            try
+            using (var snapshot = _db.GetSnapshot())
             {
                 var readOption = new ReadOptions { Snapshot = snapshot, FillCache = true };
-                
+
                 foreach (var obj in objs)
                 {
                     var keySlice = _docConverter.GetKeySlice(obj);
@@ -185,14 +184,10 @@ namespace KoduStore
                     {
                         continue;
                     }
-                    
+
                     var prevObj = _serializer.Deserialize(prevObjSlice.ToByteArray());
                     this.DeleteIndexesInBatch(batch, prevObj);
                 }
-            }
-            finally
-            {
-                _db.ReleaseSnapshot(snapshot);
             }
         }
 
