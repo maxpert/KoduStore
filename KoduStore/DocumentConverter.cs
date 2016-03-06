@@ -1,5 +1,6 @@
 ﻿using LevelDBWinRT;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,6 +15,8 @@ namespace KoduStore
         private const byte IndexPrefix = 254;
 
         private static readonly byte[] ClassNameHash = ByteUtils.Hash(ByteUtils.StringToBytes(typeof(T).FullName));
+
+        private static readonly ConcurrentDictionary<string, byte[]> IndexNamesCache = new ConcurrentDictionary<string, byte[]>();
 
         private readonly IndexInfo _indexInfo;
 
@@ -50,7 +53,6 @@ namespace KoduStore
             using (var ms = new MemoryStream())
             using (var writer = new BinaryWriter(ms))
             {
-                byte[] prefix = null;
                 IPropertyValueSerializer serializer = null;
 
                 if (lookupIndex)
@@ -61,7 +63,7 @@ namespace KoduStore
                         serializer = idxInfo.Serializer;
                         if (serializer != null)
                         {
-                            prefix = serializer.Serialize(idxInfo.Name);
+                            writer.Write(this.GetIndexKeyPrefixSlice(idxInfo).ToByteArray(deepCopy: false));
                         }
                     }
                 }
@@ -71,15 +73,13 @@ namespace KoduStore
                     serializer = keyTuple?.Item2.Serializer;
                     if (serializer != null)
                     {
-                        prefix = serializer.Serialize(ClassNameHash);
+                        writer.Write(this.GetKeyPrefixSlice().ToByteArray(deepCopy: false));
                     }
                 }
-                
-                writer.Write(lookupIndex ? IndexPrefix : IdPrefix);
 
-                if (prefix != null)
+                if (serializer == null)
                 {
-                    writer.Write(prefix);
+                    throw new InvalidOperationException("Serializer for filed "+memberInfo.Name+ " is null");
                 }
 
                 if (value != null)
@@ -100,8 +100,7 @@ namespace KoduStore
             using (var ms = new MemoryStream())
             using (var writer = new BinaryWriter(ms))
             {
-                writer.Write(IdPrefix);
-                writer.Write(ClassNameHash);
+                writer.Write(this.GetKeyPrefixSlice().ToByteArray(deepCopy: false));
                 foreach (var idMember in _idMembers)
                 {
                     var serializer = idMember.Item2.Serializer;
@@ -123,6 +122,33 @@ namespace KoduStore
                              .Select(indexMember => this.GetIndexKeySlice(obj, indexMember.Item1, indexMember.Item2, keyTuple))
                              .ToList();
         }
+        
+        public Slice GetKeyPrefixSlice()
+        {
+            using (var ms = new MemoryStream())
+            using (var writer = new BinaryWriter(ms))
+            {
+                writer.Write(ClassNameHash);
+                writer.Write(IdPrefix);
+                writer.Flush();
+
+                return Slice.FromByteArray(ms.ToArray());
+            }
+        }
+
+        private Slice GetIndexKeyPrefixSlice(SecondaryIndexAttribute indexAttr)
+        {
+            using (var ms = new MemoryStream())
+            using (var writer = new BinaryWriter(ms))
+            {
+                writer.Write(ClassNameHash);
+                writer.Write(IndexPrefix);
+                writer.Write(this.HashedIndexName(indexAttr.Name));
+                writer.Flush();
+
+                return Slice.FromByteArray(ms.ToArray());
+            }
+        }
 
         private Slice GetIndexKeySlice(T obj, MemberInfo member, SecondaryIndexAttribute indexAttr, Slice primaryId)
         {
@@ -132,10 +158,10 @@ namespace KoduStore
                 var serializer = indexAttr.Serializer;
                 var serializedBytes = serializer.Serialize(this.GetValue(obj, member));
                 this.VerifySerializedBytes(serializedBytes);
-                writer.Write(IndexPrefix);
-                writer.Write(ByteUtils.StringToBytes(indexAttr.Name));
+
+                writer.Write(this.GetIndexKeyPrefixSlice(indexAttr).ToByteArray(deepCopy: false));
                 writer.Write(serializedBytes);
-                writer.Write(primaryId.ToByteArray());
+                writer.Write(primaryId.ToByteArray(deepCopy: false));
                 writer.Flush();
 
                 return Slice.FromByteArray(ms.ToArray());
@@ -158,6 +184,13 @@ namespace KoduStore
             {
                 throw new InvalidDataException("Property serializer does not support specified value type");
             }
+        }
+
+        private byte[] HashedIndexName(string indexAttrName)
+        {
+            return DocumentConverter<T>.IndexNamesCache.GetOrAdd(
+                indexAttrName,
+                _ => ByteUtils.Hash(ByteUtils.StringToBytes(indexAttrName)));
         }
     }
 }

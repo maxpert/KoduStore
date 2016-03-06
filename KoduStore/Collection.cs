@@ -185,7 +185,7 @@ namespace KoduStore
                         continue;
                     }
 
-                    var prevObj = _serializer.Deserialize(prevObjSlice.ToByteArray());
+                    var prevObj = _serializer.Deserialize(prevObjSlice.ToByteArray(deepCopy: false));
                     this.DeleteIndexesInBatch(batch, prevObj);
                 }
             }

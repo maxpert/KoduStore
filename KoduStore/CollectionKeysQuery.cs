@@ -55,7 +55,7 @@ namespace KoduStore
                     iterator.Seek(id);
                     if (iterator.Valid() && comparer.Compare(id, iterator.Key()) == 0)
                     {
-                        documents.Add(_objectSerializer.Deserialize(iterator.Value().ToByteArray()));
+                        documents.Add(_objectSerializer.Deserialize(iterator.Value().ToByteArray(deepCopy: false)));
                     }
                     else
                     {

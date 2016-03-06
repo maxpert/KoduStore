@@ -7,7 +7,7 @@ namespace KoduStore
     {
         public int Compare(Slice x, Slice y)
         {
-            return ByteUtils.ByteArrayCompare(x.ToByteArray(), y.ToByteArray());
+            return ByteUtils.ByteArrayCompare(x.ToByteArray(deepCopy: false), y.ToByteArray(deepCopy: false));
         }
     }
 }

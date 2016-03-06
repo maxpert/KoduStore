@@ -59,38 +59,53 @@ namespace KoduStore
             
             bool isPrimaryIdLookup = _documentFieldConverter.IsPrimaryIdField(_memberInfo);
             Slice startSlice = _documentFieldConverter.GetSliceFromMemberInfo(_memberInfo, start, lookupIndex: !isPrimaryIdLookup);
-            byte[] prefixBytes = _documentFieldConverter.GetSliceFromMemberInfo(_memberInfo, null, lookupIndex: !isPrimaryIdLookup)
-                                                        .ToByteArray();
+            Slice prefixSlice = _documentFieldConverter.GetSliceFromMemberInfo(_memberInfo, null, lookupIndex: !isPrimaryIdLookup);
+            byte[] prefixBytes = prefixSlice.ToByteArray();
 
-            // Collect doc ids or documents (depending upon lookup type)
-            this.OnEach(startSlice, (k, v) =>
+            using (var snapshot = _db.GetSnapshot())
+            using (var iterator = _db.NewIterator(new ReadOptions {FillCache = true, Snapshot = snapshot}))
             {
-                // If prefix changed we crossed over (scanning should stop)
-                if (!k.ToByteArray().HasPrefix(prefixBytes))
+                iterator.Seek(startSlice);
+                // Try seeking cursor to given start
+                // If start == null then prefixSlice == startSlice
+                // in that case we should use _direction to determine our start
+                if (start == null ||
+                    !iterator.Valid() || 
+                    !iterator.Key().ToByteArray().HasPrefix(prefixBytes))
                 {
-                    return 0;
+                    this.SeekIteratorToBoundary(iterator, prefixSlice);
                 }
+                
+                while (iterator.Valid())
+                {
+                    var k = iterator.Key();
+                    var v = iterator.Value();
 
-                int collectedCount;
-                if (isPrimaryIdLookup)
-                {
-                    documents.Add(_objectSerializer.Deserialize(v.ToByteArray()));
-                    collectedCount = documents.Count;
-                }
-                else
-                {
-                    docIds.Add(v);
-                    collectedCount = docIds.Count;
-                }
+                    if (!k.ToByteArray().HasPrefix(prefixBytes))
+                    {
+                        break;
+                    }
 
-                // Filled limit, should exit
-                if (collectedCount >= _limit)
-                {
-                    return 0;
-                }
+                    int collectedCount;
+                    if (isPrimaryIdLookup)
+                    {
+                        documents.Add(_objectSerializer.Deserialize(v.ToByteArray()));
+                        collectedCount = documents.Count;
+                    }
+                    else
+                    {
+                        docIds.Add(v);
+                        collectedCount = docIds.Count;
+                    }
 
-                return _direction;
-            });
+                    // Filled limit
+                    // Or no seeking requested
+                    if (collectedCount >= _limit || !this.MoveNextDirection(iterator))
+                    {
+                        break;
+                    }
+                }
+            }
 
             // If it's already a primary Id lookup or no items found
             if (isPrimaryIdLookup || docIds.Count < 0)
@@ -101,5 +116,30 @@ namespace KoduStore
             return this.GetMultiple(docIds);
         }
 
+        private void SeekIteratorToBoundary(Iterator iterator, Slice prefixSlice)
+        {
+            // Seek iterator to valid position based upon direction
+            iterator.Seek(_direction > 0 ? _documentFieldConverter.GetKeyPrefixSlice() : prefixSlice);
+
+            // Move one back in case of reverse since we see seeked +1 to the end
+            if (iterator.Valid() && _direction > 0)
+            {
+                iterator.Prev();
+            }
+        }
+
+        private bool MoveNextDirection(Iterator itr)
+        {
+            if (_direction > 0)
+            {
+                itr.Prev();
+            }
+            else if (_direction < 0)
+            {
+                itr.Next();
+            }
+
+            return _direction != 0;
+        }
     }
 }

@@ -74,7 +74,7 @@ namespace CRUDTests
             _collection.Put(t);
 
             var query = _collection.Query(o => o.Id);
-            Assert.IsNull(query.Get(0).FirstOrDefault(), "Unable to find o");
+            Assert.IsNotNull(query.Get(0).FirstOrDefault(), "Unable to find o");
             query.Dispose();
         }
 

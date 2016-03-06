@@ -39,7 +39,7 @@ namespace KoduStore
 
                 if (isPrimaryIdLookup)
                 {
-                    documents.Add(_objectSerializer.Deserialize(v.ToByteArray()));
+                    documents.Add(_objectSerializer.Deserialize(v.ToByteArray(deepCopy: false)));
                 }
                 else
                 {
