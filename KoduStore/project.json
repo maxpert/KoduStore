@@ -1,6 +1,6 @@
 ﻿{
   "dependencies": {
-    "LevelDB.UWP": "1.18.0-beta",
+    "LevelDB.UWP": "1.18.1",
     "Microsoft.NETCore.UniversalWindowsPlatform": "5.0.0",
     "Newtonsoft.Json": "8.0.2",
     "NuSpec.ReferenceGenerator": "1.4.2"
