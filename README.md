@@ -74,7 +74,7 @@ Given an item you can simply call delete on item to delete it from collection:
 Just like expression ```i => i.Id``` use a valid secondary index from your object:
 
 ```c#
-    collection.Find(i => i.Author).Get("zohaib");
+    collection.Query(i => i.Author).Get("zohaib");
 ```
 
 ## Finding documents within a Range
@@ -83,7 +83,7 @@ Damn simple!
 
 ```c#
     IList<Post> posts = collection.QueryRange(i => i.Id).Get(1, 100);
-    IList<Post> popularPosts = collection.FindRange(i => i.Upvotes).Get(100000, 1);
+    IList<Post> popularPosts = collection.QueryRange(i => i.Upvotes).Get(100000, 1);
 ```
 
 The Get call takes two parameters starting key and ending key. Passing them in reverse order will iterate over keys in revers order hence the results would be sorted in reverse order.
@@ -115,3 +115,4 @@ This scans for all the items with ```Upvotes``` <= MAX_VOTE_COUNT. Again it's qu
  - Association support
  - Manual filter and iteration support
  - Detailed documentation
+ - Demo apps
