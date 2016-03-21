@@ -1,6 +1,6 @@
 # KoduStore
 
-KoduStore makes marries objects and LevelDB UWP in a delightful way. It's a really basic document store with support for primary and secondary index support; this will solve most of your problems. Right now it PCL (for UWP). It has only two dependencies, [NewtonSoft JSON](https://www.nuget.org/packages/Newtonsoft.Json/) and [LevelDB for UWP](https://www.nuget.org/packages/LevelDB.UWP/1.18.0-beta).
+KoduStore makes marries objects and LevelDB UWP in a delightful way. It's a really basic document store with support for primary and secondary index support; this will solve most of your problems. Right now it PCL (for UWP). It has only two dependencies, [NewtonSoft JSON](https://www.nuget.org/packages/Newtonsoft.Json/) and [LevelDB for UWP](https://www.nuget.org/packages/LevelDB.UWP/).
 
 # Features
 
