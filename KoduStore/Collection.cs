@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace KoduStore
 {
-    public class Collection<T> where T : class
+    public class Collection<T> : IDisposable where T : class
     {
         public enum ScanDirection
         {
@@ -39,14 +39,28 @@ namespace KoduStore
             _docConverter = new DocumentConverter<T>();
         }
 
+        public void Open(Options levelDbOptions)
+        {
+            _db = new DB(levelDbOptions, _path);
+        }
+
         public void Open(bool createIfMissing = true)
         {
-            _db = new DB(new Options
+            this.Open(new Options
             {
-                CreateIfMissing = true,
+                CreateIfMissing = createIfMissing,
                 Compressor = CompressorType.Snappy,
-            },
-            _path);
+            });
+        }
+
+        public virtual void Dispose(bool disposing)
+        {
+        }
+
+        public void Dispose()
+        {
+            this.Close();
+            this.Dispose(true);
         }
 
         public void Close()
@@ -148,7 +162,7 @@ namespace KoduStore
             MemberInfo ret = null;
             if (fieldExpression.NodeType == ExpressionType.Lambda && fieldExpression.Body is MemberExpression)
             {
-                var operand = fieldExpression.Body as MemberExpression;
+                var operand = (MemberExpression) fieldExpression.Body;
                 ret = operand?.Member;
             }
 

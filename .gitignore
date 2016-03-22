@@ -4,3 +4,6 @@
 *.csproj.user
 *.lock.json
 *.sdf
+*.user
+*.bak
+*.nupkg

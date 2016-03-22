@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>KoduStore</id>
+    <version>0.5.0-beta</version>
+    <title>KoduStore</title>
+    <authors>Zohaib Sibte Hassan</authors>
+    <owners>Zohaib Sibte Hassan</owners>
+    <description>
+      KoduStore makes marries objects and LevelDB UWP in a delightful way. It's a really basic document store with support for primary and secondary index support; this will solve most of your problems. Right now it PCL (for UWP).
+    </description>
+    <releaseNotes>
+- First version
+    </releaseNotes>
+    <summary>
+      KoduStore makes marries objects and LevelDB UWP in a delightful way. It's a really basic document store with support for primary and secondary index support; this will solve most of your problems. Right now it PCL (for UWP).
+    </summary>
+    <language>en-US</language>
+    <projectUrl>https://github.com/maxpert/KoduStore</projectUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <licenseUrl>http://opensource.org/licenses/Apache-2.0</licenseUrl>
+    <copyright>Copyright  2016</copyright>
+    <dependencies>
+      <group targetFramework="uap10.0">
+        <dependency id="Newtonsoft.Json" version="8.0.3" />
+        <dependency id="LevelDB.UWP" version="1.18.2" />
+      </group>
+    </dependencies>
+    <references></references>
+    <tags>leveldb,leveldb uwp,database,store,storage,orm,mapper,kodu,kodustore,key-value,key value,key value store,key-value store,uwp,pcl</tags>
+  </metadata>
+  <files>
+    <file src="..\KoduStore\bin\Release\KoduStore.*" target="lib\uap10.0" />
+    <file src="tools\" target="tools" />
+    <file src="content\" target="content" />
+  </files>
+</package>
