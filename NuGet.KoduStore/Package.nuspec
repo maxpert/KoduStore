@@ -2,16 +2,14 @@
 <package >
   <metadata>
     <id>KoduStore</id>
-    <version>0.5.0-beta</version>
+    <version>1.1.0</version>
     <title>KoduStore</title>
     <authors>Zohaib Sibte Hassan</authors>
     <owners>Zohaib Sibte Hassan</owners>
     <description>
       KoduStore makes marries objects and LevelDB UWP in a delightful way. It's a really basic document store with support for primary and secondary index support; this will solve most of your problems. Right now it PCL (for UWP).
     </description>
-    <releaseNotes>
-- First version
-    </releaseNotes>
+    <releaseNotes>First stable version with public test cases and stable API</releaseNotes>
     <summary>
       KoduStore makes marries objects and LevelDB UWP in a delightful way. It's a really basic document store with support for primary and secondary index support; this will solve most of your problems. Right now it PCL (for UWP).
     </summary>
