@@ -8,7 +8,15 @@ KoduStore marries objects and LevelDB UWP in a delightful way. It's a really bas
  - Threadsafe - allows multiple readers and single writer 
  - Cleaner abstraction with documents
  - Ultra lightweight < 1K lines of code
- - Detailed testcase coverage
+ - Detailed testcase coverage (> 90%)
+
+# Install
+
+KoduStore is available as Nuget package (https://www.nuget.org/packages/KoduStore/), you can install it by simply doing:
+
+    Install-Package KoduStore
+
+This should install both dependencies LevelDB UWP, and NewtonSoft Json.
 
 # Quick Tutorial
 
